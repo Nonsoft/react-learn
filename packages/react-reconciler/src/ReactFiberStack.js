@@ -47,6 +47,7 @@ function pop<T>(cursor: StackCursor<T>, fiber: Fiber): void {
     }
   }
 
+  // stack -> old value
   cursor.current = valueStack[index];
 
   valueStack[index] = null;
@@ -58,15 +59,18 @@ function pop<T>(cursor: StackCursor<T>, fiber: Fiber): void {
   index--;
 }
 
+// 用 stack 记录值，调用 pop 的顺序需要和 push 相反
 function push<T>(cursor: StackCursor<T>, value: T, fiber: Fiber): void {
   index++;
 
+  // old value -> stack
   valueStack[index] = cursor.current;
 
   if (__DEV__) {
     fiberStack[index] = fiber;
   }
 
+  // set new value
   cursor.current = value;
 }
 

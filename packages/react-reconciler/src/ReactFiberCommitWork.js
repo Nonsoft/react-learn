@@ -1277,6 +1277,7 @@ function commitDeletion(
 }
 
 function commitWork(current: Fiber | null, finishedWork: Fiber): void {
+  console.log('react-reconciler - ReactFiberCommitWork - commitWork.');
   if (!supportsMutation) {
     switch (finishedWork.tag) {
       case FunctionComponent:

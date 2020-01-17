@@ -224,6 +224,7 @@ export function recordEffect(): void {
 }
 
 export function recordScheduleUpdate(): void {
+  // __DEV__
   if (enableUserTimingAPI) {
     if (isCommitting) {
       hasScheduledUpdateInCurrentCommit = true;

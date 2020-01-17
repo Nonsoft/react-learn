@@ -92,11 +92,17 @@ function createRootImpl(
   tag: RootTag,
   options: void | RootOptions,
 ) {
+  console.log('react-dom - ReactDOMRoot - createRootImpl.');
+
   // Tag is either LegacyRoot or Concurrent Root
   const hydrate = options != null && options.hydrate === true;
   const hydrationCallbacks =
     (options != null && options.hydrationOptions) || null;
+  // react-reconciler/ReactFiberReconciler.js
+  // FiberRoot
   const root = createContainer(container, tag, hydrate, hydrationCallbacks);
+  // ./ReactDOMComponentTree.js
+  // container.__reactContainere$ = root.current // RootFiber
   markContainerAsRoot(root.current, container);
   if (hydrate && tag !== LegacyRoot) {
     const doc =

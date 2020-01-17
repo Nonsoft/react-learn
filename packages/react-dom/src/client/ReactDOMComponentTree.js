@@ -15,6 +15,7 @@ import invariant from 'shared/invariant';
 
 import {getParentSuspenseInstance} from './ReactDOMHostConfig';
 
+// 每次打开应用，初始化时生成一个新的 randomKey
 const randomKey = Math.random()
   .toString(36)
   .slice(2);

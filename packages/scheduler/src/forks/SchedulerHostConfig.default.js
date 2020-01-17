@@ -102,8 +102,10 @@ if (
     typeof performance === 'object' &&
     typeof performance.now === 'function'
   ) {
+    // 现代浏览器用 performance.now() 获取窗口打开时间，精度更高
     getCurrentTime = () => performance.now();
   } else {
+    // 老浏览器使用 Date.now() - initialTime 获取窗口打开时间
     const initialTime = Date.now();
     getCurrentTime = () => Date.now() - initialTime;
   }

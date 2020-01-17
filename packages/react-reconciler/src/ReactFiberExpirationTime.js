@@ -18,7 +18,7 @@ import {
   IdlePriority,
 } from './SchedulerWithReactIntegration';
 
-export type ExpirationTime = number;
+export type ExpirationTime = number; // 单位 UNIT_SIZE ms => 10ms
 
 export const NoWork = 0;
 // TODO: Think of a better name for Never. The key difference with Idle is that
@@ -39,23 +39,38 @@ let ContinuousHydration = 3;
 export const Sync = MAX_SIGNED_31_BIT_INT;
 export const Batched = Sync - 1;
 
+// expiration time 的单位是 10ms
 const UNIT_SIZE = 10;
 const MAGIC_NUMBER_OFFSET = Batched - 1;
 
 // 1 unit of expiration time represents 10ms.
 export function msToExpirationTime(ms: number): ExpirationTime {
   // Always add an offset so that we don't clash with the magic number for NoWork.
-  return MAGIC_NUMBER_OFFSET - ((ms / UNIT_SIZE) | 0);
+  return MAGIC_NUMBER_OFFSET - ((ms / UNIT_SIZE) | 0); // `| 0`: 取整
 }
 
 export function expirationTimeToMs(expirationTime: ExpirationTime): number {
   return (MAGIC_NUMBER_OFFSET - expirationTime) * UNIT_SIZE;
 }
 
+/**
+ * ceiling(124, 25) -> 125
+ * ceiling(125, 25) -> 150
+ *
+ * @param {number} num ms
+ * @param {number} precision 精度，作为每批的时间
+ */
 function ceiling(num: number, precision: number): number {
   return (((num / precision) | 0) + 1) * precision;
 }
 
+/**
+ * 单位：ms / UNIT_SIZE = ExpirationTime
+ *
+ * @param {ExpirationTime} currentTime
+ * @param {number} expirationInMs
+ * @param {number} bucketSizeMs
+ */
 function computeExpirationBucket(
   currentTime,
   expirationInMs,

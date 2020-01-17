@@ -287,11 +287,16 @@ let spawnedWorkDuringRender: null | Array<ExpirationTime> = null;
 // In other words, because expiration times determine how updates are batched,
 // we want all updates of like priority that occur within the same event to
 // receive the same expiration time. Otherwise we get tearing.
+// 由于 expiration times 决定了更新的批处理方式
+// 因此我们希望在同一事件中发生的所有优先级相同的更新都收到相同的 expiration time
 let currentEventTime: ExpirationTime = NoWork;
 
 export function requestCurrentTimeForUpdate() {
+  // executionContext & 0b110000 !== 0b000000
+  // -> executionContext === RenderContext || executionContext === CommitContext
   if ((executionContext & (RenderContext | CommitContext)) !== NoContext) {
     // We're inside React, so it's fine to read the actual time.
+    // ./ReactFiberExpirationTime.js
     return msToExpirationTime(now());
   }
   // We're not inside React, so we may be in the middle of a browser event.
@@ -301,6 +306,8 @@ export function requestCurrentTimeForUpdate() {
   }
   // This is the first update since React yielded. Compute a new start time.
   currentEventTime = msToExpirationTime(now());
+  // prettier-ignore
+  console.log('react-reconciler - ReactFiberWorkLoop - requestCurrentTimeForUpdate. first update');
   return currentEventTime;
 }
 
@@ -313,16 +320,36 @@ export function computeExpirationForFiber(
   fiber: Fiber,
   suspenseConfig: null | SuspenseConfig,
 ): ExpirationTime {
+  // ./ReactTypeOfMode.js
+  // export const NoMode = 0b0000;
+  // export const StrictMode = 0b0001;
+  // export const BlockingMode = 0b0010;
+  // export const ConcurrentMode = 0b0100;
+  // export const ProfileMode = 0b1000;
   const mode = fiber.mode;
   if ((mode & BlockingMode) === NoMode) {
+    // ./ReactFiberExpirationTime.js
+    // export const Sync = MAX_SIGNED_31_BIT_INT;
     return Sync;
   }
 
+  // BlockingMode
+
+  // export const ImmediatePriority: ReactPriorityLevel = 99;
+  // export const UserBlockingPriority: ReactPriorityLevel = 98;
+  // export const NormalPriority: ReactPriorityLevel = 97;
+  // export const LowPriority: ReactPriorityLevel = 96;
+  // export const IdlePriority: ReactPriorityLevel = 95;
+  // // NoPriority is the absence of priority. Also React-only.
+  // export const NoPriority: ReactPriorityLevel = 90;
   const priorityLevel = getCurrentPriorityLevel();
   if ((mode & ConcurrentMode) === NoMode) {
     return priorityLevel === ImmediatePriority ? Sync : Batched;
   }
 
+  // ConcurrentMode
+
+  // rendering
   if ((executionContext & RenderContext) !== NoContext) {
     // Use whatever time we're already rendering
     // TODO: Should there be a way to opt out, like with `runWithPriority`?
@@ -376,9 +403,11 @@ export function scheduleUpdateOnFiber(
   fiber: Fiber,
   expirationTime: ExpirationTime,
 ) {
+  console.log('react-reconciler - ReactFiberWorkLoop - scheduleUpdateOnFiber.');
   checkForNestedUpdates();
   warnAboutInvalidUpdatesOnClassComponentsInDEV(fiber);
 
+  // fiberRoot
   const root = markUpdateTimeFromFiberToRoot(fiber, expirationTime);
   if (root === null) {
     warnAboutUpdateOnUnmountedFiberInDEV(fiber);
@@ -393,6 +422,7 @@ export function scheduleUpdateOnFiber(
   const priorityLevel = getCurrentPriorityLevel();
 
   if (expirationTime === Sync) {
+    // initial
     if (
       // Check if we're inside unbatchedUpdates
       (executionContext & LegacyUnbatchedContext) !== NoContext &&
@@ -453,6 +483,7 @@ function markUpdateTimeFromFiberToRoot(fiber, expirationTime) {
   if (fiber.expirationTime < expirationTime) {
     fiber.expirationTime = expirationTime;
   }
+  // Update the alternate's expiration time
   let alternate = fiber.alternate;
   if (alternate !== null && alternate.expirationTime < expirationTime) {
     alternate.expirationTime = expirationTime;
@@ -460,6 +491,7 @@ function markUpdateTimeFromFiberToRoot(fiber, expirationTime) {
   // Walk the parent path to the root and update the child expiration time.
   let node = fiber.return;
   let root = null;
+  // fiber is RootFiber
   if (node === null && fiber.tag === HostRoot) {
     root = fiber.stateNode;
   } else {
@@ -479,6 +511,7 @@ function markUpdateTimeFromFiberToRoot(fiber, expirationTime) {
       ) {
         alternate.childExpirationTime = expirationTime;
       }
+      // node is RootFiber
       if (node.return === null && node.tag === HostRoot) {
         root = node.stateNode;
         break;
@@ -488,6 +521,7 @@ function markUpdateTimeFromFiberToRoot(fiber, expirationTime) {
   }
 
   if (root !== null) {
+    // in the middle of rendering
     if (workInProgressRoot === root) {
       // Received an update to a tree that's in the middle of rendering. Mark
       // that's unprocessed work on this root.
@@ -986,6 +1020,7 @@ function finishConcurrentRender(
 // This is the entry point for synchronous tasks that don't go
 // through Scheduler
 function performSyncWorkOnRoot(root) {
+  console.log('react-reconciler - ReactFiberWorkLoop - performSyncWorkOnRoot.');
   // Check if there's expired work on this root. Otherwise, render at Sync.
   const lastExpiredTime = root.lastExpiredTime;
   const expirationTime = lastExpiredTime !== NoWork ? lastExpiredTime : Sync;
@@ -1001,16 +1036,19 @@ function performSyncWorkOnRoot(root) {
   if (root !== workInProgressRoot || expirationTime !== renderExpirationTime) {
     prepareFreshStack(root, expirationTime);
     startWorkOnPendingInteractions(root, expirationTime);
+  } else {
+    // prettier-ignore
+    console.log('react-reconciler - ReactFiberWorkLoop - performSyncWorkOnRoot. root and expiration time have not changed');
   }
 
   // If we have a work-in-progress fiber, it means there's still work to do
   // in this root.
   if (workInProgress !== null) {
     const prevExecutionContext = executionContext;
-    executionContext |= RenderContext;
+    executionContext |= RenderContext; // add render context
     const prevDispatcher = pushDispatcher(root);
     const prevInteractions = pushInteractions(root);
-    startWorkLoopTimer(workInProgress);
+    startWorkLoopTimer(workInProgress); // __DEV__
 
     do {
       try {
@@ -1020,11 +1058,12 @@ function performSyncWorkOnRoot(root) {
         handleError(root, thrownValue);
       }
     } while (true);
+    // restore
     resetContextDependencies();
     executionContext = prevExecutionContext;
     popDispatcher(prevDispatcher);
     if (enableSchedulerTracing) {
-      popInteractions(((prevInteractions: any): Set<Interaction>));
+      popInteractions((prevInteractions: Set<Interaction>));
     }
 
     if (workInProgressRootExitStatus === RootFatalErrored) {
@@ -1187,14 +1226,16 @@ export function discreteUpdates<A, B, C, R>(
 
 export function unbatchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
   const prevExecutionContext = executionContext;
-  executionContext &= ~BatchedContext;
-  executionContext |= LegacyUnbatchedContext;
+  executionContext &= ~BatchedContext; // &= ~: remove
+  executionContext |= LegacyUnbatchedContext; // |= : add
   try {
     return fn(a);
   } finally {
+    // 以 unbatched 执行后恢复
     executionContext = prevExecutionContext;
     if (executionContext === NoContext) {
       // Flush the immediate callbacks that were scheduled during this batch
+      // ./SchedulerWithReactIntegration.js
       flushSyncCallbackQueue();
     }
   }
@@ -1245,7 +1286,7 @@ function prepareFreshStack(root, expirationTime) {
     // state. Now that we have additional work, cancel the timeout.
     root.timeoutHandle = noTimeout;
     // $FlowFixMe Complains noTimeout is not a TimeoutID, despite the check above
-    cancelTimeout(timeoutHandle);
+    cancelTimeout(timeoutHandle); // clearTimeout
   }
 
   if (workInProgress !== null) {
@@ -1255,6 +1296,7 @@ function prepareFreshStack(root, expirationTime) {
       interruptedWork = interruptedWork.return;
     }
   }
+  // fresh
   workInProgressRoot = root;
   workInProgress = createWorkInProgress(root.current, null, expirationTime);
   renderExpirationTime = expirationTime;
@@ -1321,6 +1363,7 @@ function handleError(root, thrownValue) {
 
 function pushDispatcher(root) {
   const prevDispatcher = ReactCurrentDispatcher.current;
+  // ./ReactFiberHooks.js
   ReactCurrentDispatcher.current = ContextOnlyDispatcher;
   if (prevDispatcher === null) {
     // The React isomorphic package does not include a default dispatcher.
@@ -1454,6 +1497,7 @@ function inferTimeFromExpirationTimeWithSuspenseConfig(
 // The work loop is an extremely hot path. Tell Closure not to inline it.
 /** @noinline */
 function workLoopSync() {
+  console.log('react-reconciler - ReactFiberWorkLoop - workLoopSync.');
   // Already timed out, so perform work without checking if we need to yield.
   while (workInProgress !== null) {
     workInProgress = performUnitOfWork(workInProgress);
@@ -1469,14 +1513,16 @@ function workLoopConcurrent() {
 }
 
 function performUnitOfWork(unitOfWork: Fiber): Fiber | null {
+  console.log('react-reconciler - ReactFiberWorkLoop - performUnitOfWork.');
   // The current, flushed, state of this fiber is the alternate. Ideally
   // nothing should rely on this, but relying on it here means that we don't
   // need an additional field on the work in progress.
   const current = unitOfWork.alternate;
 
-  startWorkTimer(unitOfWork);
-  setCurrentDebugFiberInDEV(unitOfWork);
+  startWorkTimer(unitOfWork); // __DEV__
+  setCurrentDebugFiberInDEV(unitOfWork); // __DEV__
 
+  // next fiber
   let next;
   if (enableProfilerTimer && (unitOfWork.mode & ProfileMode) !== NoMode) {
     startProfilerTimer(unitOfWork);
@@ -1488,8 +1534,10 @@ function performUnitOfWork(unitOfWork: Fiber): Fiber | null {
 
   resetCurrentDebugFiberInDEV();
   unitOfWork.memoizedProps = unitOfWork.pendingProps;
+  // no child
   if (next === null) {
     // If this doesn't spawn new work, complete the current work.
+    // to sibling
     next = completeUnitOfWork(unitOfWork);
   }
 
@@ -1516,6 +1564,7 @@ function completeUnitOfWork(unitOfWork: Fiber): Fiber | null {
         !enableProfilerTimer ||
         (workInProgress.mode & ProfileMode) === NoMode
       ) {
+        // ./ReactFiberCompleteWork.js
         next = completeWork(current, workInProgress, renderExpirationTime);
       } else {
         startProfilerTimer(workInProgress);
@@ -1708,7 +1757,7 @@ function resetChildExpirationTime(completedWork: Fiber) {
 function commitRoot(root) {
   const renderPriorityLevel = getCurrentPriorityLevel();
   runWithPriority(
-    ImmediatePriority,
+    ImmediatePriority, // Scheduler_ImmediatePriority
     commitRootImpl.bind(null, root, renderPriorityLevel),
   );
   return null;
@@ -1731,11 +1780,13 @@ function commitRootImpl(root, renderPriorityLevel) {
     'Should not already be working.',
   );
 
+  // RootFiber
   const finishedWork = root.finishedWork;
   const expirationTime = root.finishedExpirationTime;
   if (finishedWork === null) {
     return null;
   }
+  // FiberRoot reset finished
   root.finishedWork = null;
   root.finishedExpirationTime = NoWork;
 
@@ -1796,7 +1847,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 
   if (firstEffect !== null) {
     const prevExecutionContext = executionContext;
-    executionContext |= CommitContext;
+    executionContext |= CommitContext; // add CommitContext
     const prevInteractions = pushInteractions(root);
 
     // Reset this to null before calling lifecycles
@@ -2560,9 +2611,9 @@ function checkForInterruption(
   updateExpirationTime: ExpirationTime,
 ) {
   if (
-    enableUserTimingAPI &&
-    workInProgressRoot !== null &&
-    updateExpirationTime > renderExpirationTime
+    enableUserTimingAPI && // __DEV__
+    workInProgressRoot !== null && // rendering
+    updateExpirationTime > renderExpirationTime // newer update
   ) {
     interruptedBy = fiberThatReceivedUpdate;
   }
@@ -2997,6 +3048,7 @@ function schedulePendingInteractions(root, expirationTime) {
   // This is called when work is scheduled on a root.
   // It associates the current interactions with the newly-scheduled expiration.
   // They will be restored when that expiration is later committed.
+  // __PROFILE__
   if (!enableSchedulerTracing) {
     return;
   }

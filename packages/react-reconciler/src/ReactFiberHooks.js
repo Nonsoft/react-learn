@@ -369,6 +369,8 @@ export function renderWithHooks(
   secondArg: any,
   nextRenderExpirationTime: ExpirationTime,
 ): any {
+  console.log('react-reconciler - ReactFiberHooks - renderWithHooks.');
+
   renderExpirationTime = nextRenderExpirationTime;
   currentlyRenderingFiber = workInProgress;
 
@@ -422,6 +424,19 @@ export function renderWithHooks(
         : HooksDispatcherOnUpdate;
   }
 
+  // renderWithHooks (react-dom.development.js:16589)
+  // mountIndeterminateComponent (react-dom.development.js:19187)
+  // beginWork$1 (react-dom.development.js:20584)
+  // beginWork$$1 (react-dom.development.js:26261)
+  // performUnitOfWork (react-dom.development.js:25199)
+  // workLoopSync (react-dom.development.js:25172)
+  // performSyncWorkOnRoot (react-dom.development.js:24765)
+  // scheduleUpdateOnFiber (react-dom.development.js:24185)
+  // updateContainer (react-dom.development.js:27651)
+  // (anonymous) (react-dom.development.js:28106)
+  // unbatchedUpdates (react-dom.development.js:24930)
+  // legacyRenderSubtreeIntoContainer (react-dom.development.js:28104)
+  // render (react-dom.development.js:28194)
   let children = Component(props, secondArg);
 
   if (didScheduleRenderPhaseUpdate) {
@@ -470,7 +485,7 @@ export function renderWithHooks(
     currentHook !== null && currentHook.next !== null;
 
   renderExpirationTime = NoWork;
-  currentlyRenderingFiber = (null: any);
+  currentlyRenderingFiber = null;
 
   currentHook = null;
   workInProgressHook = null;

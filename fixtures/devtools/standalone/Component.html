@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>TODO List</title>
+
+  <!-- DevTools -->
+  <script src="http://localhost:8097"></script>
+
+  <script src="../../../build/dist/react.development.js"></script>
+  <script src="../../../build/dist/react-dom.development.js"></script>
+  <script src="https://unpkg.com/immutable@4.0.0-rc.12/dist/immutable.js"></script>
+
+  <!-- Don't use this in production: -->
+  <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+
+  <style type="text/css">
+    .Input {
+      font-size: 1rem;
+      padding: 0.25rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { Fragment, Component } = React;
+
+    class TestComponent extends Component {
+      constructor(props) {
+        super(props);
+        this.name = props.name;
+        this.state = {
+          count: 0,
+          age: 0,
+        };
+      }
+
+      handleClick = () => {
+        this.setState(prevState => ({
+          count: prevState.count + 1
+        }));
+      }
+
+      handleInput = event => {
+        this.setState({
+          age: event.target.value
+        })
+      }
+
+      // init ==============================
+      // render (Inline Babel script:20)
+      // finishClassComponent (react-dom.development.js:18855)
+      // updateClassComponent (react-dom.development.js:18805)
+      // beginWork$1 (react-dom.development.js:20608)
+      // beginWork$$1 (react-dom.development.js:26261)
+      // performUnitOfWork (react-dom.development.js:25199)
+      // workLoopSync (react-dom.development.js:25172)
+      // performSyncWorkOnRoot (react-dom.development.js:24765)
+      // scheduleUpdateOnFiber (react-dom.development.js:24185)
+      // updateContainer (react-dom.development.js:27651)
+      // (anonymous) (react-dom.development.js:28106)
+      // unbatchedUpdates (react-dom.development.js:24930)
+      // legacyRenderSubtreeIntoContainer (react-dom.development.js:28104)
+      // render (react-dom.development.js:28194)
+      // (anonymous) (Inline Babel script:40)
+
+      // update ==============================
+      // render (Inline Babel script:20)
+      // finishClassComponent (react-dom.development.js:18855)
+      // updateClassComponent (react-dom.development.js:18805)
+      // beginWork$1 (react-dom.development.js:20608)
+      // beginWork$$1 (react-dom.development.js:26261)
+      // performUnitOfWork (react-dom.development.js:25199)
+      // workLoopSync (react-dom.development.js:25172)
+      // performSyncWorkOnRoot (react-dom.development.js:24765)
+      // (anonymous) (react-dom.development.js:12495)
+      // unstable_runWithPriority (react.development.js:3033)
+      // runWithPriority$2 (react-dom.development.js:12445)
+      // flushSyncCallbackQueueImpl (react-dom.development.js:12490)
+      // flushSyncCallbackQueue (react-dom.development.js:12478)
+      // discreteUpdates$1 (react-dom.development.js:24919)
+      // discreteUpdates (react-dom.development.js:1441)
+      // dispatchDiscreteEvent (react-dom.development.js:5024)
+      render() {
+        console.log('html. class Component render');
+        return (
+          <Fragment>
+            <p>name: {this.props.name}</p>
+            <p>age: {this.state.age}</p>
+            <input value={this.state.age} onChange={this.handleInput} />
+            <p>count: {this.state.count}</p>
+            <button onClick={this.handleClick}> + </button>
+          </Fragment>
+        );
+      }
+    }
+
+    function App() {
+      return (
+        <Fragment>
+          <TestComponent name="test" />
+        </Fragment>
+      );
+    }
+    // function App() {
+    //   return React.createElement(Fragment, null, 
+    //     React.createElement(TestComponent, {
+    //       name: "test"
+    //     })
+    //   );
+    // }
+    // 先执行 React.createElement(TestComponent
+    // 然后执行结果作为 React.createElement(Fragment 的 children
+
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+
+</html>

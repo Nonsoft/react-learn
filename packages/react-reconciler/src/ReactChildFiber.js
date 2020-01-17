@@ -921,6 +921,11 @@ function ChildReconciler(shouldTrackSideEffects) {
       existingChildren.forEach(child => deleteChild(returnFiber, child));
     }
 
+    // <p>name: {this.props.name}</p> => <p>name: test</p>
+    // fiber.pendingProps
+    // fiber: resultingFirstChild -> 'name: '
+    // fiber: resultingFirstChild.sibling -> this.props.name -> 'test'
+    // fiber: resultingFirstChild.return -> fiber: p
     return resultingFirstChild;
   }
 
@@ -1232,6 +1237,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       created.return = returnFiber;
       return created;
     } else {
+      // ./ReactFiber.js
       const created = createFiberFromElement(
         element,
         returnFiber.mode,

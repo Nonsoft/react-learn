@@ -93,9 +93,29 @@ const elementListenerMap:
       Map<DOMTopLevelEventType | string, null | (any => void)>,
     > = new PossiblyWeakMap();
 
+/*
+  getListenerMapForElement (react-dom.development.js:5275)
+  isListeningToAllDependencies (react-dom.development.js:5364)
+  extractEvents (react-dom.development.js:11088)
+  extractPluginEvents (react-dom.development.js:895)
+  runExtractedPluginEventsInBatch (react-dom.development.js:907)
+  handleTopLevel (react-dom.development.js:4939)
+  batchedEventUpdates$1 (react-dom.development.js:24926)
+  batchedEventUpdates (react-dom.development.js:1420)
+  dispatchEventForPluginEventSystem (react-dom.development.js:5061)
+  attemptToDispatchEvent (react-dom.development.js:5177)
+  dispatchEvent (react-dom.development.js:5081)
+  unstable_runWithPriority (react.development.js:3029)
+  runWithPriority$2 (react-dom.development.js:12474)
+  discreteUpdates$1 (react-dom.development.js:24942)
+  discreteUpdates (react-dom.development.js:1443)
+  dispatchDiscreteEvent (react-dom.development.js:5048)
+*/
 export function getListenerMapForElement(
   element: Document | Element | Node,
 ): Map<DOMTopLevelEventType | string, null | (any => void)> {
+  // prettier-ignore
+  console.log('react-dom - events - ReactBrowserEventEmitter - getListenerMapForElement.');
   let listenerMap = elementListenerMap.get(element);
   if (listenerMap === undefined) {
     listenerMap = new Map();

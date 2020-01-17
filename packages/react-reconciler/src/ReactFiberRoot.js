@@ -31,13 +31,20 @@ export type PendingInteractionMap = Map<ExpirationTime, Set<Interaction>>;
 
 type BaseFiberRootProperties = {|
   // The type of root (legacy, batched, concurrent, etc.)
+  // shared/ReactRootTags.js
+  // LegacyRoot = 0;
+  // BlockingRoot = 1;
+  // ConcurrentRoot = 2;
   tag: RootTag,
 
   // Any additional information from the host associated with this root.
+  // DOM root
   containerInfo: any,
   // Used only by persistent updates.
+  // 只有在持久更新中会用到，也就是不支持增量更新的平台，react-dom不会用到
   pendingChildren: any,
   // The currently active root fiber. This is the mutable root of the tree.
+  // 当前应用对应的 Fiber 对象，是 Root Fiber
   current: Fiber,
 
   pingCache:
@@ -47,6 +54,8 @@ type BaseFiberRootProperties = {|
 
   finishedExpirationTime: ExpirationTime,
   // A finished work-in-progress HostRoot that's ready to be committed.
+  // 已经完成的任务的 FiberRoot 对象，如果你只有一个 Root，那他永远只可能是这个 Root 对应的 Fiber，或者是 null
+  // 在commit阶段只会处理这个值对应的任务
   finishedWork: Fiber | null,
   // Timeout handle returned by setTimeout. Used to cancel a pending timeout, if
   // it's superseded by a new one.
@@ -55,6 +64,7 @@ type BaseFiberRootProperties = {|
   context: Object | null,
   pendingContext: Object | null,
   // Determines if we should attempt to hydrate on the initial mount
+  // 用来确定第一次渲染的时候是否需要融合
   +hydrate: boolean,
   // Node returned by Scheduler.scheduleCallback
   callbackNode: *,
@@ -146,8 +156,11 @@ export function createFiberRoot(
 
   // Cyclic construction. This cheats the type system right now because
   // stateNode is any.
+  // RootFiber
   const uninitializedFiber = createHostRootFiber(tag);
+  // FiberRoot.current -> RootFiber
   root.current = uninitializedFiber;
+  // RootFiber.stateNode -> FiberRoot
   uninitializedFiber.stateNode = root;
 
   initializeUpdateQueue(uninitializedFiber);
@@ -190,6 +203,7 @@ export function markRootSuspendedAtTime(
   }
 }
 
+// Update the range of pending times and suspended times.
 export function markRootUpdatedAtTime(
   root: FiberRoot,
   expirationTime: ExpirationTime,

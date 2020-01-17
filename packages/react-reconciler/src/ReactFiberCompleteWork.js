@@ -638,6 +638,7 @@ function completeWork(
   workInProgress: Fiber,
   renderExpirationTime: ExpirationTime,
 ): Fiber | null {
+  console.log('react-reconciler - ReactFiberCompleteWork - completeWork.');
   const newProps = workInProgress.pendingProps;
 
   switch (workInProgress.tag) {
@@ -817,6 +818,7 @@ function completeWork(
             markUpdate(workInProgress);
           }
         } else {
+          // react-dom/client/ReactDOMHostConfig.js
           workInProgress.stateNode = createTextInstance(
             newText,
             rootContainerInstance,

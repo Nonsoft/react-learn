@@ -21,6 +21,9 @@ const SUBSEPARATOR = ':';
 /**
  * Escape and wrap key so it is safe to use as a reactid
  *
+ * '=' -> '=0',
+ * ':' -> '=2', // SUBSEPARATOR
+ *
  * @param {string} key to be escaped.
  * @return {string} the escaped key.
  */
@@ -44,9 +47,15 @@ function escape(key) {
 
 let didWarnAboutMaps = false;
 
+// +: 1 - n
+// *: 0 - n
+// ?: 0 - 1
 const userProvidedKeyEscapeRegex = /\/+/g;
+/**
+ * 'a//b/c' -> 'a///b//c'
+ */
 function escapeUserProvidedKey(text) {
-  return ('' + text).replace(userProvidedKeyEscapeRegex, '$&/');
+  return ('' + text).replace(userProvidedKeyEscapeRegex, '$&/'); // $& 表示整个被匹配的字符串
 }
 
 const POOL_SIZE = 10;
@@ -103,6 +112,7 @@ function traverseAllChildrenImpl(
 ) {
   const type = typeof children;
 
+  // jsx 中 undefined 和 boolean 不渲染
   if (type === 'undefined' || type === 'boolean') {
     // All of the above are perceived as null.
     children = null;
@@ -128,6 +138,7 @@ function traverseAllChildrenImpl(
   }
 
   if (invokeCallback) {
+    // mapSingleChildIntoContext(bookKeeping, child, childKey)
     callback(
       traverseContext,
       children,
@@ -286,7 +297,7 @@ function forEachChildren(children, forEachFunc, forEachContext) {
 }
 
 function mapSingleChildIntoContext(bookKeeping, child, childKey) {
-  const {result, keyPrefix, func, context} = bookKeeping;
+  const {result, keyPrefix, func, context} = bookKeeping; // traverseContext
 
   let mappedChild = func.call(context, child, bookKeeping.count++);
   if (Array.isArray(mappedChild)) {

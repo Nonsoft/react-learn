@@ -16,14 +16,35 @@ if (__DEV__) {
 
 /**
  * Base class helpers for the updating state of a component.
+ * constructClassInstance (react-dom.development.js:14433)
+ * 
+ * init stack trace:
+    updateClassComponent (react-dom.development.js:18770)
+    beginWork$1 (react-dom.development.js:20577)
+    beginWork$$1 (react-dom.development.js:26214)
+    performUnitOfWork (react-dom.development.js:25155)
+    workLoopSync (react-dom.development.js:25128)
+    performSyncWorkOnRoot (react-dom.development.js:24724)
+    scheduleUpdateOnFiber (react-dom.development.js:24151)
+    updateContainer (react-dom.development.js:27604)
+    (anonymous) (react-dom.development.js:28047)
+    unbatchedUpdates (react-dom.development.js:24889)
+    legacyRenderSubtreeIntoContainer (react-dom.development.js:28045)
+    render (react-dom.development.js:28131)
  */
 function Component(props, context, updater) {
+  console.log('react - ReactBaseClasses - Component.');
   this.props = props;
   this.context = context;
   // If a component has string refs, we will assign a different object later.
   this.refs = emptyObject;
   // We initialize the default updater but the real one gets injected by the
   // renderer.
+  /* 
+    adoptClassInstance (react-dom.development.js:14373)
+    constructClassInstance (react-dom.development.js:14434)
+    updateClassComponent (react-dom.development.js:18770)
+  */
   this.updater = updater || ReactNoopUpdateQueue;
 }
 
@@ -55,6 +76,7 @@ Component.prototype.isReactComponent = {};
  * @protected
  */
 Component.prototype.setState = function(partialState, callback) {
+  console.log('react - ReactBaseClasses - setState.');
   invariant(
     typeof partialState === 'object' ||
       typeof partialState === 'function' ||
@@ -127,6 +149,7 @@ ComponentDummy.prototype = Component.prototype;
  * Convenience component with default shallow equality check for sCU.
  */
 function PureComponent(props, context, updater) {
+  console.log('react - ReactBaseClasses - PureComponent.');
   this.props = props;
   this.context = context;
   // If a component has string refs, we will assign a different object later.

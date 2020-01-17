@@ -110,11 +110,16 @@ function defineRefPropWarningGetter(props, displayName) {
  * @internal
  */
 const ReactElement = function(type, key, ref, self, source, owner, props) {
+  // 抽象的结构，脱离平台的限制
   const element = {
     // This tag allows us to uniquely identify this as a React Element
+    // shared/ReactSymbols.js
     $$typeof: REACT_ELEMENT_TYPE,
 
     // Built-in properties that belong on the element
+    // JSX 中的标签名
+    // Fragement: Symbol(react.fragment)
+    // App: App
     type: type,
     key: key,
     ref: ref,
@@ -344,9 +349,9 @@ export function createElement(type, config, children) {
 
   // Children can be more than one argument, and those are transferred onto
   // the newly allocated props object.
-  const childrenLength = arguments.length - 2;
+  const childrenLength = arguments.length - 2; // type, config, children...
   if (childrenLength === 1) {
-    props.children = children;
+    props.children = children; // object
   } else if (childrenLength > 1) {
     const childArray = Array(childrenLength);
     for (let i = 0; i < childrenLength; i++) {
@@ -357,7 +362,7 @@ export function createElement(type, config, children) {
         Object.freeze(childArray);
       }
     }
-    props.children = childArray;
+    props.children = childArray; // array
   }
 
   // Resolve default props

@@ -274,6 +274,7 @@ export function finalizeInitialChildren(
   rootContainerInstance: Container,
   hostContext: HostContext,
 ): boolean {
+  console.log('react-dom - ReactDOMHostConfig - finalizeInitialChildren.');
   setInitialProperties(domElement, type, props, rootContainerInstance);
   return shouldAutoFocusHostComponent(type, props);
 }
@@ -338,6 +339,7 @@ export function createTextInstance(
     validateDOMNesting(null, text, hostContextDev.ancestorInfo);
   }
   const textNode: TextInstance = createTextNode(text, rootContainerInstance);
+  // fiber: textNode.__reactInternalInstance$ = internalInstanceHandle
   precacheFiberNode(internalInstanceHandle, textNode);
   return textNode;
 }

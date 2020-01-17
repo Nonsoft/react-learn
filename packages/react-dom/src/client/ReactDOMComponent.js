@@ -527,6 +527,8 @@ export function setInitialProperties(
 
   // TODO: Make sure that we check isMounted before firing any of these events.
   let props: Object;
+  // prettier-ignore
+  console.log('react-dom - ReactDOMComponent - setInitialProperties. tag: ' + tag);
   switch (tag) {
     case 'iframe':
     case 'object':

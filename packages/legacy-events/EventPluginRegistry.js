@@ -35,6 +35,8 @@ const namesToPlugins: NamesToPlugins = {};
  * @private
  */
 function recomputePluginOrdering(): void {
+  // callde by react-dom - ReactDOMClientInjection. init
+  // EventPluginHubInjection.injectEventPluginOrder
   if (!eventPluginOrder) {
     // Wait until an `eventPluginOrder` is injected.
     return;

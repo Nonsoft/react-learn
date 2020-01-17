@@ -91,7 +91,7 @@ if (__DEV__) {
     if (callback === null || typeof callback === 'function') {
       return;
     }
-    const key = `${callerName}_${(callback: any)}`;
+    const key = `${callerName}_${callback}`;
     if (!didWarnOnInvalidCallback.has(key)) {
       didWarnOnInvalidCallback.add(key);
       console.error(
@@ -178,9 +178,13 @@ export function applyDerivedStateFromProps(
   }
 }
 
+// Component, PureComponent updater
 const classComponentUpdater = {
   isMounted,
   enqueueSetState(inst, payload, callback) {
+    // prettier-ignore
+    console.log('react-reconciler - ReactFiberClassComponent - enqueueSetState.');
+    // inst._reactInternalFiber
     const fiber = getInstance(inst);
     const currentTime = requestCurrentTimeForUpdate();
     const suspenseConfig = requestCurrentSuspenseConfig();
@@ -190,6 +194,8 @@ const classComponentUpdater = {
       suspenseConfig,
     );
 
+    // ./ReactUpdateQueue.js
+    // update.tag = UpdateState = 0;
     const update = createUpdate(expirationTime, suspenseConfig);
     update.payload = payload;
     if (callback !== undefined && callback !== null) {
@@ -199,7 +205,9 @@ const classComponentUpdater = {
       update.callback = callback;
     }
 
+    // ./ReactUpdateQueue.js
     enqueueUpdate(fiber, update);
+    // ./ReactFiberWorkLoop.js
     scheduleWork(fiber, expirationTime);
   },
   enqueueReplaceState(inst, payload, callback) {
@@ -213,6 +221,7 @@ const classComponentUpdater = {
     );
 
     const update = createUpdate(expirationTime, suspenseConfig);
+    // export const ReplaceState = 1;
     update.tag = ReplaceState;
     update.payload = payload;
 
@@ -237,6 +246,7 @@ const classComponentUpdater = {
     );
 
     const update = createUpdate(expirationTime, suspenseConfig);
+    // export const ForceUpdate = 2;
     update.tag = ForceUpdate;
 
     if (callback !== undefined && callback !== null) {
@@ -516,6 +526,7 @@ function adoptClassInstance(workInProgress: Fiber, instance: any): void {
   instance.updater = classComponentUpdater;
   workInProgress.stateNode = instance;
   // The instance needs access to the fiber so that it can schedule updates
+  // instance._reactInternalFiber = workInProgress
   setInstance(instance, workInProgress);
   if (__DEV__) {
     instance._reactInternalInstance = fakeInternalInstance;
@@ -576,7 +587,7 @@ function constructClassInstance(
   }
 
   if (typeof contextType === 'object' && contextType !== null) {
-    context = readContext((contextType: any));
+    context = readContext(contextType);
   } else if (!disableLegacyContext) {
     unmaskedContext = getUnmaskedContext(workInProgress, ctor, true);
     const contextTypes = ctor.contextTypes;
@@ -597,6 +608,7 @@ function constructClassInstance(
     }
   }
 
+  // class 才有 instance
   const instance = new ctor(props, context);
   const state = (workInProgress.memoizedState =
     instance.state !== null && instance.state !== undefined
@@ -813,8 +825,11 @@ function mountClassInstance(
     }
   }
 
+  // ./ReactUpdateQueue.js
   processUpdateQueue(workInProgress, newProps, instance, renderExpirationTime);
   instance.state = workInProgress.memoizedState;
+
+  // before mount life cycles
 
   const getDerivedStateFromProps = ctor.getDerivedStateFromProps;
   if (typeof getDerivedStateFromProps === 'function') {
@@ -847,6 +862,7 @@ function mountClassInstance(
     instance.state = workInProgress.memoizedState;
   }
 
+  // componentDidMount mark Update effectTag
   if (typeof instance.componentDidMount === 'function') {
     workInProgress.effectTag |= Update;
   }

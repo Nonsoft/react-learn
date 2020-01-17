@@ -32,12 +32,17 @@ export type WorkTag =
   | 21
   | 22;
 
+// functional Component
 export const FunctionComponent = 0;
+// Component / PureComponent
 export const ClassComponent = 1;
 export const IndeterminateComponent = 2; // Before we know whether it is function or class
+// Host: 宿主
 export const HostRoot = 3; // Root of a host tree. Could be nested inside another node.
 export const HostPortal = 4; // A subtree. Could be an entry point to a different renderer.
+// 在 DOM 中像 p / div ...
 export const HostComponent = 5;
+// 文本
 export const HostText = 6;
 export const Fragment = 7;
 export const Mode = 8;

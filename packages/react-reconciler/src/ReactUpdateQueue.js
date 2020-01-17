@@ -108,13 +108,22 @@ import invariant from 'shared/invariant';
 import {getCurrentPriorityLevel} from './SchedulerWithReactIntegration';
 
 export type Update<State> = {
+  // 更新的过期时间
   expirationTime: ExpirationTime,
   suspenseConfig: null | SuspenseConfig,
 
+  // export const UpdateState = 0;
+  // export const ReplaceState = 1;
+  // export const ForceUpdate = 2;
+  // export const CaptureUpdate = 3;
+  // 指定更新的类型，值为以上几种
   tag: 0 | 1 | 2 | 3,
+  // 更新内容，比如 `setState` 接收的第一个参数
   payload: any,
+  // 对应的回调，`setState`，`render` 都有
   callback: (() => mixed) | null,
 
+  // 指向下一个更新
   next: Update<State>,
 
   //DEV only
@@ -126,6 +135,7 @@ type SharedQueue<State> = {
 };
 
 export type UpdateQueue<State> = {
+  // 每次操作完更新之后的 `state`
   baseState: State,
   baseQueue: Update<State> | null,
   shared: SharedQueue<State>,
@@ -191,7 +201,7 @@ export function createUpdate(
     expirationTime,
     suspenseConfig,
 
-    tag: UpdateState,
+    tag: UpdateState, // default UpdateState
     payload: null,
     callback: null,
 
@@ -205,6 +215,8 @@ export function createUpdate(
 }
 
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
+  console.log('react-reconciler - ReactUpdateQueue - enqueueUpdate.');
+  // initializeUpdateQueue
   const updateQueue = fiber.updateQueue;
   if (updateQueue === null) {
     // Only occurs if the fiber has been unmounted.
@@ -214,12 +226,19 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   const sharedQueue = updateQueue.shared;
   const pending = sharedQueue.pending;
   if (pending === null) {
+    // prettier-ignore
+    console.log('react-reconciler - ReactUpdateQueue - enqueueUpdate. first update');
     // This is the first update. Create a circular list.
     update.next = update;
   } else {
+    // pending -> next
+    // =>
+    // pending -> update -> next
     update.next = pending.next;
     pending.next = update;
   }
+  // sharedQueue.pending -> pending
+  // =>
   sharedQueue.pending = update;
 
   if (__DEV__) {
@@ -340,6 +359,7 @@ export function processUpdateQueue<State>(
   instance: any,
   renderExpirationTime: ExpirationTime,
 ): void {
+  console.log('react-reconciler - ReactUpdateQueue - processUpdateQueue.');
   // This is always non-null on a ClassComponent or HostRoot
   const queue: UpdateQueue<State> = (workInProgress.updateQueue: any);
 
@@ -365,6 +385,7 @@ export function processUpdateQueue<State>(
       pendingQueue.next = baseFirst;
     }
 
+    // update workInProgress baseQueue
     baseQueue = pendingQueue;
 
     queue.shared.pending = null;
@@ -373,6 +394,7 @@ export function processUpdateQueue<State>(
     if (current !== null) {
       const currentQueue = current.updateQueue;
       if (currentQueue !== null) {
+        // update current baseQueue
         currentQueue.baseQueue = pendingQueue;
       }
     }
@@ -429,7 +451,7 @@ export function processUpdateQueue<State>(
               payload: update.payload,
               callback: update.callback,
 
-              next: (null: any),
+              next: null,
             };
             newBaseQueueLast = newBaseQueueLast.next = clone;
           }
@@ -466,6 +488,7 @@ export function processUpdateQueue<State>(
           }
         }
         update = update.next;
+        // update 全部执行完毕 || update.next === baseQueue.next
         if (update === null || update === first) {
           pendingQueue = queue.shared.pending;
           if (pendingQueue === null) {
@@ -485,10 +508,10 @@ export function processUpdateQueue<State>(
     if (newBaseQueueLast === null) {
       newBaseState = newState;
     } else {
-      newBaseQueueLast.next = (newBaseQueueFirst: any);
+      newBaseQueueLast.next = newBaseQueueFirst;
     }
 
-    queue.baseState = ((newBaseState: any): State);
+    queue.baseState = (newBaseState: State);
     queue.baseQueue = newBaseQueueLast;
 
     // Set the remaining expiration time to be whatever is remaining in the queue.

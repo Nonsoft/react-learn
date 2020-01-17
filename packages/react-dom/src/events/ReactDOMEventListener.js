@@ -272,11 +272,32 @@ export function removeActiveResponderEventSystemEvent(
   }
 }
 
+// trapEventForPluginEventSystem (react-dom.development.js:4996)
+// trapBubbledEvent (react-dom.development.js:4950)
+// listenToTopLevel (react-dom.development.js:5331)
+// listenTo (react-dom.development.js:5290)
+// ensureListeningTo (react-dom.development.js:6851)
+// setInitialDOMProperties (react-dom.development.js:6923)
+// setInitialProperties (react-dom.development.js:7135)
+// finalizeInitialChildren (react-dom.development.js:8703)
+// completeWork (react-dom.development.js:21550)
+// completeUnitOfWork (react-dom.development.js:25255)
+// performUnitOfWork (react-dom.development.js:25228)
+// workLoopSync (react-dom.development.js:25190)
+// performSyncWorkOnRoot (react-dom.development.js:24783)
+// scheduleUpdateOnFiber (react-dom.development.js:24203)
+// updateContainer (react-dom.development.js:27669)
+// (anonymous) (react-dom.development.js:28124)
+// unbatchedUpdates (react-dom.development.js:24948)
+// legacyRenderSubtreeIntoContainer (react-dom.development.js:28122)
+// render (react-dom.development.js:28212)
 function trapEventForPluginEventSystem(
   element: Document | Element | Node,
   topLevelType: DOMTopLevelEventType,
   capture: boolean,
 ): void {
+  // prettier-ignore
+  console.log('react-dom - events - ReactDOMEventListener - trapEventForPluginEventSystem.');
   let listener;
   switch (getEventPriorityForPluginSystem(topLevelType)) {
     case DiscreteEvent:
@@ -308,6 +329,8 @@ function trapEventForPluginEventSystem(
 }
 
 function dispatchDiscreteEvent(topLevelType, eventSystemFlags, nativeEvent) {
+  // prettier-ignore
+  console.log('react-dom - events - ReactDOMEventListener - dispatchDiscreteEvent.');
   flushDiscreteUpdatesIfNeeded(nativeEvent.timeStamp);
   discreteUpdates(dispatchEvent, topLevelType, eventSystemFlags, nativeEvent);
 }

@@ -217,19 +217,21 @@ export function createContainer(
   hydrate: boolean,
   hydrationCallbacks: null | SuspenseHydrationCallbacks,
 ): OpaqueRoot {
+  // ./ReactFiberRoot.js
   return createFiberRoot(containerInfo, tag, hydrate, hydrationCallbacks);
 }
 
 export function updateContainer(
   element: ReactNodeList,
-  container: OpaqueRoot,
+  container: OpaqueRoot, // fiberRoot
   parentComponent: ?React$Component<any, any>,
   callback: ?Function,
 ): ExpirationTime {
   if (__DEV__) {
     onScheduleRoot(container, element);
   }
-  const current = container.current;
+  const current = container.current; // RootFiber
+  // ./ReactFiberWorkLoop.js
   const currentTime = requestCurrentTimeForUpdate();
   if (__DEV__) {
     // $FlowExpectedError - jest isn't a global, and isn't recognized outside of tests
@@ -288,7 +290,10 @@ export function updateContainer(
     update.callback = callback;
   }
 
+  // ./ReactUpdateQueue.js
+  // fiber.updateQueue.shared.pending -> update
   enqueueUpdate(current, update);
+  // ./ReactFiberWorkLoop.js
   scheduleWork(current, expirationTime);
 
   return expirationTime;
@@ -316,7 +321,7 @@ export function getPublicRootInstance(
     return null;
   }
   switch (containerFiber.child.tag) {
-    case HostComponent:
+    case HostComponent: // DOM
       return getPublicInstance(containerFiber.child.stateNode);
     default:
       return containerFiber.child.stateNode;

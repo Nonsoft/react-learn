@@ -222,6 +222,7 @@ export function reconcileChildren(
     // won't update its child set by applying minimal side-effects. Instead,
     // we will add them all to the child before it gets rendered. That means
     // we can optimize this reconciliation pass by not tracking side-effects.
+    // ./ReactChildFiber.js
     workInProgress.child = mountChildFibers(
       workInProgress,
       null,
@@ -235,6 +236,7 @@ export function reconcileChildren(
 
     // If we had any progressed work already, that is invalid at this point so
     // let's throw it out.
+    // ./ReactChildFiber.js
     workInProgress.child = reconcileChildFibers(
       workInProgress,
       current.child,
@@ -635,6 +637,7 @@ function updateFunctionComponent(
   if (__DEV__) {
     ReactCurrentOwner.current = workInProgress;
     setCurrentPhase('render');
+    // ReactFiberHooks.js
     nextChildren = renderWithHooks(
       current,
       workInProgress,
@@ -817,12 +820,14 @@ function updateClassComponent(
       workInProgress.effectTag |= Placement;
     }
     // In the initial pass we might need to construct the instance.
+    // ./ReactFiberClassComponent.js
     constructClassInstance(
       workInProgress,
       Component,
       nextProps,
       renderExpirationTime,
     );
+    // ./ReactFiberClassComponent.js
     mountClassInstance(
       workInProgress,
       Component,
@@ -919,6 +924,7 @@ function finishClassComponent(
   } else {
     if (__DEV__) {
       setCurrentPhase('render');
+      // class Component render
       nextChildren = instance.render();
       if (
         debugRenderPhaseSideEffectsForStrictMode &&
@@ -993,6 +999,7 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
   const nextProps = workInProgress.pendingProps;
   const prevState = workInProgress.memoizedState;
   const prevChildren = prevState !== null ? prevState.element : null;
+  // clone, not equal
   cloneUpdateQueue(current, workInProgress);
   processUpdateQueue(workInProgress, nextProps, null, renderExpirationTime);
   const nextState = workInProgress.memoizedState;
@@ -1359,6 +1366,7 @@ function mountIndeterminateComponent(
     }
 
     ReactCurrentOwner.current = workInProgress;
+    // ReactElement
     value = renderWithHooks(
       null,
       workInProgress,
@@ -2887,6 +2895,7 @@ function beginWork(
   workInProgress: Fiber,
   renderExpirationTime: ExpirationTime,
 ): Fiber | null {
+  console.log('react-reconciler - ReactFiberBeginWork - beginWork.');
   const updateExpirationTime = workInProgress.expirationTime;
 
   if (__DEV__) {
@@ -2925,6 +2934,8 @@ function beginWork(
       // This fiber does not have any pending work. Bailout without entering
       // the begin phase. There's still some bookkeeping we that needs to be done
       // in this optimized path, mostly pushing stuff onto the stack.
+      // prettier-ignore
+      console.log('react-reconciler - ReactFiberBeginWork - beginWork. This fiber does not have any pending work.');
       switch (workInProgress.tag) {
         case HostRoot:
           pushHostRootContext(workInProgress);
@@ -3102,6 +3113,9 @@ function beginWork(
 
   // Before entering the begin phase, clear the expiration time.
   workInProgress.expirationTime = NoWork;
+
+  // prettier-ignore
+  console.log('react-reconciler - ReactFiberBeginWork - beginWork. entering the begin phase. workInProgress.tag: ' + workInProgress.tag);
 
   switch (workInProgress.tag) {
     case IndeterminateComponent: {

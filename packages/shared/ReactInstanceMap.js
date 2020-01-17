@@ -32,6 +32,7 @@ export function has(key) {
   return key._reactInternalFiber !== undefined;
 }
 
+// ReactFiberClassComponent.js => func adoptClassInstance
 export function set(key, value) {
   key._reactInternalFiber = value;
 }

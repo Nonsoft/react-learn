@@ -115,6 +115,7 @@ if (__DEV__) {
 
 export type Dependencies = {
   expirationTime: ExpirationTime,
+  // 一个列表，存放这个 Fiber 依赖的 context
   firstContext: ContextDependency<mixed> | null,
   responders: Map<
     ReactEventResponder<any, any>,
@@ -136,19 +137,28 @@ export type Fiber = {|
   // minimize the number of objects created during the initial render.
 
   // Tag identifying the type of fiber.
+  // shared/ReactWorkTags.js
   tag: WorkTag,
 
   // Unique identifier of this child.
+  // ReactElement 里面的 key
   key: null | string,
 
   // The value of element.type which is used to preserve the identity during
   // reconciliation of this child.
+  // ReactElement.type，也就是我们调用 `createElement` 的第一个参数
+  // JSX 中的标签名
   elementType: any,
 
-  // The resolved function/class/ associated with this fiber.
+  // The resolved function/class/associated with this fiber.
+  // 异步组件 resolved 之后返回的内容，一般是 `function` 或者 `class`
   type: any,
 
   // The local state associated with this fiber.
+  // 跟当前Fiber相关本地状态
+  // tag: 3 RootFiber -> FiberRoot
+  // tag: 2 class Component Fiber -> class Component instance
+  // tag: 6 text -> DOM text node
   stateNode: any,
 
   // Conceptual aliases
@@ -161,25 +171,35 @@ export type Fiber = {|
   // This is effectively the parent, but there can be multiple parents (two)
   // so this is only the parent of the thing we're currently processing.
   // It is conceptually the same as the return address of a stack frame.
+  // 指向他在 Fiber 节点树中的 `parent`，用来在处理完这个节点之后向上返回
   return: Fiber | null,
 
   // Singly Linked List Tree Structure.
+  // 单链表树结构
+  // 指向自己的第一个子节点
   child: Fiber | null,
+  // 指向自己的兄弟结构
+  // 兄弟节点的return指向同一个父节点
   sibling: Fiber | null,
   index: number,
 
   // The ref last used to attach this node.
   // I'll avoid adding an owner field for prod and model that as functions.
+  // ref 属性
   ref: null | (((handle: mixed) => void) & {_stringRef: ?string}) | RefObject,
 
   // Input is the data coming into process this fiber. Arguments. Props.
+  // 新的变动带来的新的 props
   pendingProps: any, // This type will be more specific once we overload the tag.
+  // 上一次渲染完成之后的 props
   memoizedProps: any, // The props used to create the output.
 
   // A queue of state updates and callbacks.
+  // 该 Fiber 对应的组件产生的 Update 会存放在这个队列里面
   updateQueue: UpdateQueue<any> | null,
 
   // The state used to create the output
+  // 上一次渲染的时候的 state
   memoizedState: any,
 
   // Dependencies (contexts, events) for this fiber, if it has any
@@ -191,31 +211,55 @@ export type Fiber = {|
   // parent. Additional flags can be set at creation time, but after that the
   // value should remain unchanged throughout the fiber's lifetime, particularly
   // before its child fibers are created.
+  // 用来描述当前 Fiber 和他子树的 Bitfield
+  // 共存的模式表示这个子树是否默认是异步渲染的
+  // Fiber 被创建的时候他会继承父 Fiber
+  // 其他的标识也可以在创建的时候被设置
+  // 但是在创建之后不应该再被修改，特别是他的子 Fiber 创建之前
+  // ./ReactTypeOfMode.js
+  // export const NoMode = 0b0000;
+  // export const StrictMode = 0b0001;
+  // export const BlockingMode = 0b0010;
+  // export const ConcurrentMode = 0b0100;
+  // export const ProfileMode = 0b1000;
   mode: TypeOfMode,
 
   // Effect
+  // 用来记录 Side Effect
+  // shared/ReactSideEffectTags.js
   effectTag: SideEffectTag,
 
   // Singly linked list fast path to the next fiber with side-effects.
+  // 单链表用来快速查找下一个 side effect
   nextEffect: Fiber | null,
 
   // The first and last fiber with side-effect within this subtree. This allows
   // us to reuse a slice of the linked list when we reuse the work done within
   // this fiber.
+  // 子树中第一个 side effect
   firstEffect: Fiber | null,
+  // 子树中最后一个 side effect
   lastEffect: Fiber | null,
 
   // Represents a time in the future by which this work should be completed.
   // Does not include work found in its subtree.
+  // 代表任务在未来的哪个时间点应该被完成
+  // 不包括他的子树产生的任务
   expirationTime: ExpirationTime,
 
   // This is used to quickly determine if a subtree has no pending changes.
+  // 快速确定子树中是否有不在等待的变化
   childExpirationTime: ExpirationTime,
 
   // This is a pooled version of a Fiber. Every fiber that gets updated will
   // eventually have a pair. There are cases when we can clean up pairs to save
   // memory if we need to.
+  // 在 Fiber 树更新的过程中，每个 Fiber 都会有一个跟其对应的 Fiber
+  // 我们称他为 current <==> workInProgress
+  // 在渲染完成之后他们会交换位置
   alternate: Fiber | null,
+
+  // 下面是调试相关的，收集每个Fiber和子树渲染时间的
 
   // Time spent rendering this Fiber and its descendants for the current update.
   // This tells us how well the tree makes use of sCU for memoization.
@@ -261,7 +305,7 @@ function FiberNode(
   mode: TypeOfMode,
 ) {
   // Instance
-  this.tag = tag;
+  this.tag = tag; // shared/ReactWorkTags.js
   this.key = key;
   this.elementType = null;
   this.type = null;
@@ -281,7 +325,7 @@ function FiberNode(
   this.memoizedState = null;
   this.dependencies = null;
 
-  this.mode = mode;
+  this.mode = mode; // ./ReactTypeOfMode.js 根据 tag 来生成
 
   // Effects
   this.effectTag = NoEffect;
@@ -427,6 +471,7 @@ export function createWorkInProgress(
       workInProgress._debugHookTypes = current._debugHookTypes;
     }
 
+    // 相互引用
     workInProgress.alternate = current;
     current.alternate = workInProgress;
   } else {
@@ -594,6 +639,7 @@ export function createHostRootFiber(tag: RootTag): Fiber {
     mode |= ProfileMode;
   }
 
+  // RootFiber
   return createFiber(HostRoot, null, null, mode);
 }
 
@@ -611,6 +657,7 @@ export function createFiberFromTypeAndProps(
   // The resolved type is set if we know what the final type will be. I.e. it's not lazy.
   let resolvedType = type;
   if (typeof type === 'function') {
+    // check prototype.isReactComponent
     if (shouldConstruct(type)) {
       fiberTag = ClassComponent;
       if (__DEV__) {
@@ -656,6 +703,7 @@ export function createFiberFromTypeAndProps(
           switch (type.$$typeof) {
             case REACT_PROVIDER_TYPE:
               fiberTag = ContextProvider;
+              // 双层 switch，break 外层 switch
               break getTag;
             case REACT_CONTEXT_TYPE:
               // This is a consumer

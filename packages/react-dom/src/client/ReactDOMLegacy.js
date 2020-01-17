@@ -118,6 +118,8 @@ function legacyCreateRootFromDOMContainer(
   container: DOMContainer,
   forceHydrate: boolean,
 ): RootType {
+  console.log('react-dom - ReactDOMLegacy - legacyCreateRootFromDOMContainer.');
+
   const shouldHydrate =
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
@@ -170,6 +172,8 @@ function legacyRenderSubtreeIntoContainer(
   forceHydrate: boolean,
   callback: ?Function,
 ) {
+  console.log('react-dom - ReactDOMLegacy - legacyRenderSubtreeIntoContainer.');
+
   if (__DEV__) {
     topLevelUpdateWarnings(container);
     warnOnInvalidCallback(callback === undefined ? null : callback, 'render');
@@ -177,9 +181,12 @@ function legacyRenderSubtreeIntoContainer(
 
   // TODO: Without `any` type, Flow says "Property cannot be accessed on any
   // member of intersection type." Whyyyyyy.
+  // ReactRoot
   let root: RootType = (container._reactRootContainer: any);
   let fiberRoot;
   if (!root) {
+    // prettier-ignore
+    console.log('react-dom - ReactDOMLegacy - legacyRenderSubtreeIntoContainer. Initial mount');
     // Initial mount
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
@@ -189,12 +196,16 @@ function legacyRenderSubtreeIntoContainer(
     if (typeof callback === 'function') {
       const originalCallback = callback;
       callback = function() {
+        // react-reconciler/ReactFiberReconciler.js
         const instance = getPublicRootInstance(fiberRoot);
         originalCallback.call(instance);
       };
     }
     // Initial mount should not be batched.
+    // 初次渲染，需要尽快完成
+    // react-reconciler/ReactFiberWorkLoop.js
     unbatchedUpdates(() => {
+      // react-reconciler/ReactFiberReconciler.js
       updateContainer(children, fiberRoot, parentComponent, callback);
     });
   } else {
@@ -280,6 +291,7 @@ export function render(
   container: DOMContainer,
   callback: ?Function,
 ) {
+  console.log('react-dom - ReactDOMLegacy - render.');
   invariant(
     isValidContainer(container),
     'Target container is not a DOM element.',

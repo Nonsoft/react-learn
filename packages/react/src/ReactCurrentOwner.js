@@ -20,6 +20,11 @@ const ReactCurrentOwner = {
    * @internal
    * @type {ReactComponent}
    */
+  // read: react/ReactElement.js
+  // Fiber: react-reconciler/ReactFiberBeginWork.js
+  //   func finishClassComponent -> ReactCurrentOwner.current = workInProgress;
+  // null: react-reconciler/ReactFiberWorkLoop.js
+  //   func performUnitOfWork & func commitRootImpl -> ReactCurrentOwner.current = null
   current: (null: null | Fiber),
 };
 

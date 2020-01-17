@@ -19,4 +19,6 @@ import invariant from 'shared/invariant';
 // sure that if we *do* accidentally break the configuration,
 // the failure isn't silent.
 
+// ./forks/
+// react-dom/src/client/ReactDOMHostConfig
 invariant(false, 'This module must be shimmed by a specific renderer.');

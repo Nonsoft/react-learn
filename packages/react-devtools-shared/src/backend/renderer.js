@@ -76,7 +76,7 @@ import type {
 type getDisplayNameForFiberType = (fiber: Fiber) => string | null;
 type getTypeSymbolType = (type: any) => Symbol | number;
 
-type ReactSymbolsType = {
+type ReactSymbolsType = {|
   CONCURRENT_MODE_NUMBER: number,
   CONCURRENT_MODE_SYMBOL_STRING: string,
   DEPRECATED_ASYNC_MODE_SYMBOL_STRING: string,
@@ -94,7 +94,7 @@ type ReactSymbolsType = {
   STRICT_MODE_SYMBOL_STRING: string,
   SCOPE_NUMBER: number,
   SCOPE_SYMBOL_STRING: string,
-};
+|};
 
 type ReactPriorityLevelsType = {|
   ImmediatePriority: number,
@@ -1907,6 +1907,11 @@ export function attach(
     }
   }
 
+  function getDisplayNameForFiberID(id) {
+    const fiber = idToFiberMap.get(id);
+    return fiber != null ? getDisplayNameForFiber(((fiber: any): Fiber)) : null;
+  }
+
   function getFiberIDForNative(
     hostInstance,
     findNearestUnfilteredAncestor = false,
@@ -3179,6 +3184,7 @@ export function attach(
     findNativeNodesForFiberID,
     flushInitialOperations,
     getBestMatchForTrackedPath,
+    getDisplayNameForFiberID,
     getFiberIDForNative,
     getInstanceAndStyle,
     getOwnersList,

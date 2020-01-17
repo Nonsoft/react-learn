@@ -107,7 +107,7 @@ import {
 import invariant from 'shared/invariant';
 import {getCurrentPriorityLevel} from './SchedulerWithReactIntegration';
 
-export type Update<State> = {
+export type Update<State> = {|
   // 更新的过期时间
   expirationTime: ExpirationTime,
   suspenseConfig: null | SuspenseConfig,
@@ -126,21 +126,19 @@ export type Update<State> = {
   // 指向下一个更新
   next: Update<State>,
 
-  //DEV only
+  // DEV only
   priority?: ReactPriorityLevel,
-};
+|};
 
-type SharedQueue<State> = {
-  pending: Update<State> | null,
-};
+type SharedQueue<State> = {|pending: Update<State> | null|};
 
-export type UpdateQueue<State> = {
+export type UpdateQueue<State> = {|
   // 每次操作完更新之后的 `state`
   baseState: State,
   baseQueue: Update<State> | null,
   shared: SharedQueue<State>,
   effects: Array<Update<State>> | null,
-};
+|};
 
 export const UpdateState = 0;
 export const ReplaceState = 1;

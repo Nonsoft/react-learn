@@ -158,7 +158,7 @@ export type Fiber = {|
   // 跟当前Fiber相关本地状态
   // tag: 3 RootFiber -> FiberRoot
   // tag: 2 class Component Fiber -> class Component instance
-  // tag: 6 text -> DOM text node
+  // tag: 5 / 6 -> DOM node
   stateNode: any,
 
   // Conceptual aliases
